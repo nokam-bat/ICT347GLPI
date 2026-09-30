@@ -1,1 +1,1 @@
-# MA31GLPI
+# ICT 347 - GLPI
