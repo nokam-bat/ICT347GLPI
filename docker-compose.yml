@@ -1,0 +1,58 @@
+name: glpi
+
+services:
+  glpi:
+    # Build utilise désormais votre Dockerfile personnalisé au lieu de l'image brute
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: glpi-web
+    restart: "unless-stopped"
+    volumes:
+      - glpi_data:/var/glpi
+    env_file: .env
+    depends_on:
+      - db
+    ports:
+      - "80:80"
+    networks:
+      - glpi-private-network # Liaison au réseau personnalisé
+
+  db:
+    image: "mysql"
+    container_name: glpi-db
+    restart: "unless-stopped"
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ${GLPI_DB_NAME}
+      MYSQL_USER: ${GLPI_DB_USER}
+      MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
+    networks:
+      - glpi-private-network # La DB est isolée dans le réseau interne, sans port exposé vers l'extérieur
+
+  # Service 3 : Outil d'administration (Valide l'exigence minimale de 3 services interconnectés)
+  phpmyadmin:
+    image: "phpmyadmin:latest"
+    container_name: glpi-admin
+    restart: "unless-stopped"
+    ports:
+      - "8080:80" # Accessible sur http://localhost:8080 pour vos tests
+    environment:
+      PMA_HOST: ${GLPI_DB_HOST}
+      PMA_USER: ${GLPI_DB_USER}
+      PMA_PASSWORD: ${GLPI_DB_PASSWORD}
+    networks:
+      - glpi-private-network
+    depends_on:
+      - db
+
+volumes:
+  glpi_data:
+  db_data:
+
+networks:
+  # Réseau personnalisé exigé par le cahier des charges pour sécuriser les flux
+  glpi-private-network:
+    driver: bridge
