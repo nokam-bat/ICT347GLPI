@@ -48,9 +48,26 @@ services:
     depends_on:
       - db
 
+  # Service 4 : Outil de monitoring (Visualisation graphique de l'infrastructure)
+  portainer:
+    image: "portainer/portainer-ce:latest"
+    container_name: glpi-monitoring
+    restart: "unless-stopped"
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "9001:9000" # Accessible sur http://localhost:9001 pour vos tests et la démo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Permet à Portainer d'écouter les événements Docker locaux
+      - portainer_data:/data
+    networks:
+      - glpi-private-network
+    depends_on:
+      - glpi
+
 volumes:
   glpi_data:
   db_data:
+  portainer_data: # Persistance des configurations et comptes de l'interface de monitoring
 
 networks:
   # Réseau personnalisé exigé par le cahier des charges pour sécuriser les flux
