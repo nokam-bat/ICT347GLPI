@@ -1,62 +1,64 @@
-# Projet I347 - Virtualisation de GLPI avec des conteneurs
+# I347 - Virtualisation et Déploiement de GLPI avec Conteneurs Docker
 
 ## Introduction / But du projet
-Ce projet s'inscrit dans le cadre du module I347 au Centre Professionnel du Nord Vaudois (CPNV). L'objectif est de moderniser une infrastructure informatique en déployant une solution complète de gestion de parc avec **GLPI**, entièrement virtualisée à l'aide de conteneurs Docker et Docker Compose. 
+Ce projet est réalisé dans le cadre du module I347 au Centre Professionnel du Nord Vaudois (CPNV). L'objectif principal est de moderniser l'infrastructure applicative d'une organisation en conteneurisant une solution complète de gestion de parc informatique avec **GLPI**. 
 
-La solution intègre une architecture micro-services, un réseau isolé personnalisé, la persistance automatique des données et une gestion sécurisée des secrets d'environnement.
+L'infrastructure est entièrement virtualisée, automatisée via Docker Compose, sécurisée au niveau réseau et configurée pour garantir la persistance des données en production.
 
 ## Architecture
-L'architecture de production est segmentée en **3 services interconnectés** au sein d'un réseau étanche :
+L'architecture logicielle est découpée en **4 micro-services interconnectés** au sein d'un réseau étanche :
 
-*   **glpi-web (Service Application) :** Gère l'interface utilisateur et la logique métier de GLPI, construit à partir d'un `Dockerfile` personnalisé.
-*   **glpi-db (Service Base de données) :** Système de gestion de base de données **MySQL** gérant les fiches de parc, tickets et configurations.
-*   **glpi-admin (Service Outil d'administration) :** Instance **phpMyAdmin** permettant de superviser et administrer graphiquement la base de données.
+*   **glpi-web (Application) :** Gère l'interface utilisateur de GLPI. Ce service est construit via un `Dockerfile` personnalisé.
+*   **glpi-db (Base de données) :** Instance **MySQL** qui stocke l'inventaire, les tables de données et les configurations.
+*   **glpi-admin (Administration) :** Interface graphique **phpMyAdmin** permettant de manager et de superviser la base de données.
+*   **glpi-monitoring (Supervision) :** Outil **Portainer** permettant de monitorer visuellement l'état des conteneurs, les ressources (CPU/RAM) et les logs.
 
 ### Schéma de l'architecture réseau
 ```text
-      [ Accès Utilisateur ]               [ Accès Admin ](http://localhost)               (http://localhost:8080)
-               │                                   │
-               ▼                                   ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                      Réseau Docker Isolé                         │
-│                     (glpi-private-network)                       │
-│                                                                  │
-│   ┌───────────────────────┐             ┌────────────────────┐   │
-│   │     Conteneur Web     │             │  Conteneur Admin   │   │
-│   │      (glpi-web)       │             │    (phpmyadmin)    │   │
-│   └───────────┬───────────┘             └─────────┬──────────┘   │
-│               │                                   │              │
-│               │         (Flux Internes)           │              │
-│               └─────────────────┬─────────────────┘              │
-│                                 ▼                                │
-│                     ┌───────────────────────┐                    │
-│                     │     Conteneur DB      │                    │
-│                     │       (glpi-db)       │                    │
-│                     │  [Volume Persistant]  │                    │
-│                     └───────────────────────┘                    │
-└──────────────────────────────────────────────────────────────────┘
+      [ Utilisateur Web ]                  [ Admin Portainer ](http://localhost:80)               (http://localhost:9001)
+               │                                    │
+               ▼                                    ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                        Réseau Docker Privé                            │
+│                       (glpi-private-network)                          │
+│                                                                       │
+│   ┌────────────────────────┐              ┌───────────────────────┐   │
+│   │     Conteneur Web      │              │ Conteneur Monitoring  │   │
+│   │       (glpi-web)       │              │  (glpi-monitoring)    │   │
+│   └───────────┬────────────┘              └───────────┬───────────┘   │
+│               │                                       │               │
+│               │           (Flux Internes)             │               │
+│               └───────────────────┬───────────────────┘               │
+│                                   ▼                                   │
+│                       ┌───────────────────────┐                       │
+│                       │     Conteneur DB      │                       │
+│                       │       (glpi-db)       │                       │
+│                       │  [Volume Persistant]  │                       │
+│                       └───────────────────────┘                       │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Instructions de lancement
-L'ensemble de l'infrastructure est automatisé. Pour déployer, construire l'image personnalisée et lancer la solution en arrière-plan, exécutez la commande suivante à la racine du projet :
+L'infrastructure est entièrement automatisée. Pour télécharger les images, construire le Dockerfile personnalisé et lancer la stack en arrière-plan, exécutez la commande suivante :
 
 ```bash
 docker compose up -d --build
 ```
 
-### Accès aux services
-*   **Interface GLPI :** `http://localhost` (Identifiants : `glpi` / `glpi`)
-*   **Gestionnaire de Base de Données :** `http://localhost:8080`
+### URL d'accès aux services locaux
+*   **Application GLPI :** [http://localhost](http://localhost) (Identifiants : `glpi` / `glpi`)
+*   **phpMyAdmin :** [http://localhost:8080](http://localhost:8080)
+*   **Portainer (Monitoring) :** [http://localhost:9001](http://localhost:9001)
 
 ## Informations sur le réseau, la sécurité, les variables
-*   **Sécurité & Isolation réseau :** Les conteneurs communiquent via le driver privé `glpi-private-network`. Par mesure de sécurité, le conteneur de base de données MySQL (`glpi-db`) n'expose aucun port vers l'extérieur de l'hôte (port 3306 fermé aux connexions externes).
-*   **Variables d'environnement :** Toutes les configurations sensibles et d'interconnexion (mots de passe, hôtes, noms de tables) sont externalisées de manière étanche via le fichier `.env`.
-*   **Dockerfile Personnalisé :** L'image applicative GLPI est optimisée en y injectant directement des variables d'environnement de production standardisées (ex: `GLPI_LANG=fr_FR`).
+*   **Variables d'environnement (.env) :** Toutes les configurations d'interconnexion (mots de passe SQL, ports, noms de base) sont isolées de manière étanche dans le fichier `.env` afin d'éviter l'écriture de données sensibles en dur dans le code.
+*   **Sécurité et Isolation réseau :** Les conteneurs communiquent via un sous-réseau bridge isolé (`glpi-private-network`). Le conteneur de base de données MySQL n'expose aucun port vers l'hôte extérieur (port 3306 fermé), la rendant invisible et protégée contre les attaques externes.
+*   **Dockerfile personnalisé :** L'image de base applicative est configurée en amont en y forçant l'environnement de production standardisé (langue en français via `ENV GLPI_LANG=fr_FR`).
 
 ## Tests effectués et résultats
-*   **Test d'interconnexion :** Validation de la communication interne : le service Web parvient à joindre l'hôte `db` défini dans le `.env` pour finaliser son installation.
-*   **Test de persistance (Validé) :** Création d'un ticket de test dans l'interface GLPI, suivi d'un arrêt complet des infrastructures via `docker compose down`. Après une relance complète (`docker compose up`), le ticket est toujours présent en base de données, confirmant le bon fonctionnement des volumes nommés `glpi_data` et `db_data`.
+*   **Test d'étanchéité réseau (Réussi) :** Les connexions externes sur le port 3306 de la base de données sont rejetées par l'hôte. Seul le conteneur `glpi-web` au sein du réseau virtuel Docker peut l'atteindre.
+*   **Test de persistance des données (Réussi) :** Création d'un ticket et d'un ordinateur de test dans l'interface GLPI. Exécution d'un `docker compose down` pour détruire les conteneurs. Après exécution de `docker compose up -d`, les données saisies sont intégralement conservées grâce aux volumes nommés `glpi_data` et `db_data`.
 
 ## Problèmes rencontrés / pistes d’amélioration
-*   **Problème rencontré :** Lors du premier lancement, une erreur d'absence de build a été levée (`failed to read dockerfile`). Elle a été corrigée en créant un fichier `Dockerfile` strict sans extension à la racine, permettant à Docker Compose de compiler correctement le micro-service applicatif.
-*   **Pistes d'amélioration :** Évoluer vers un build *multistage* dans le Dockerfile pour restreindre au maximum les dépendances et la taille de l'image de production, et implémenter des restrictions de privilèges (exécution en utilisateur non-root).
+*   **Problème rencontré :** Conflit sur le port par défaut de Portainer (`9000`) lors des premiers lancements locaux. Résolu avec succès en modifiant le mappage de port externe vers le port `9001` dans le fichier `docker-compose.yml`.
+*   **Pistes d'amélioration :** Implémenter un build Multi-stage dans le Dockerfile pour réduire l'empreinte de stockage de l'image de production et mettre en place un Reverse Proxy Nginx pour chiffrer les flux web en HTTPS.
