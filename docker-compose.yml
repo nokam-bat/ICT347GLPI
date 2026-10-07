@@ -2,7 +2,7 @@ name: glpi
 
 services:
   glpi:
-    # Build utilise désormais votre Dockerfile personnalisé au lieu de l'image brute
+    # Build utilise désormais le Dockerfile personnalisé au lieu de l'image brute
     build:
       context: .
       dockerfile: Dockerfile
@@ -32,13 +32,13 @@ services:
     networks:
       - glpi-private-network # La DB est isolée dans le réseau interne, sans port exposé vers l'extérieur
 
-  # Service 3 : Outil d'administration (Valide l'exigence minimale de 3 services interconnectés)
+  # Service 3 : Outil d'administration 
   phpmyadmin:
     image: "phpmyadmin:latest"
     container_name: glpi-admin
     restart: "unless-stopped"
     ports:
-      - "8080:80" # Accessible sur http://localhost:8080 pour vos tests
+      - "8080:80" # Accessible sur http://localhost:8080 
     environment:
       PMA_HOST: ${GLPI_DB_HOST}
       PMA_USER: ${GLPI_DB_USER}
@@ -55,7 +55,7 @@ services:
     restart: "unless-stopped"
     command: -H unix:///var/run/docker.sock
     ports:
-      - "9001:9000" # Accessible sur http://localhost:9001 pour vos tests et la démo
+      - "9001:9000" # Accessible sur http://localhost:9001 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # Permet à Portainer d'écouter les événements Docker locaux
       - portainer_data:/data
@@ -70,6 +70,6 @@ volumes:
   portainer_data: # Persistance des configurations et comptes de l'interface de monitoring
 
 networks:
-  # Réseau personnalisé exigé par le cahier des charges pour sécuriser les flux
+  # Réseau personnalisé 
   glpi-private-network:
     driver: bridge
