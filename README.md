@@ -50,7 +50,7 @@ docker compose up -d --build
 ```
 
 ### URL d'accès aux services locaux
-*   **Application GLPI :** [http://localhost](http://localhost) (Identifiants : `glpi` / `glpi`)
+*   **Application GLPI :** [http://localhost](http://localhost) (Identifiants du .env-type : `glpi` / `glpi`)
 *   **phpMyAdmin :** [http://localhost:8080](http://localhost:8080)
 *   **Portainer (Monitoring) :** [http://localhost:9001](http://localhost:9001)
 
