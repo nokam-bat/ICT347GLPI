@@ -5,6 +5,10 @@ Ce projet est réalisé dans le cadre du module I347 au Centre Professionnel du 
 
 L'infrastructure est entièrement virtualisée, automatisée via Docker Compose, sécurisée au niveau réseau et configurée pour garantir la persistance des données en production.
 
+## Qu'est-ce que GLPI ?
+GLPI (Gestionnaire Libre de Parc Informatique) est un logiciel libre de gestion des services informatiques (ITSM) et de gestion des services d’assistance (issue tracking system et Service Desk) crée en 2003 par l’association « INDEPNET ». Il est plus précisément un logiciel de gestion des actifs et des TI (Technologies de l’informatique) qui offre des fonctionnalités de centre de services ITIL, le suivi des licences et l’audit des logiciels.
+Ce logiciel reste évolutif car étant en technologie libre, cela veut dire que toute personne peut exécuter, modifier ou développer le code, les contributeurs font alors partie de cette évolution en soumettant des modules supplémentaires sur GitHub. 
+
 ## Architecture
 L'architecture logicielle est découpée en **4 micro-services interconnectés** au sein d'un réseau étanche :
 
