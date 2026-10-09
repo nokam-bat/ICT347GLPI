@@ -66,3 +66,7 @@ docker compose up -d --build
 ## Problèmes rencontrés / pistes d’amélioration
 *   **Problème rencontré :** Conflit sur le port par défaut de Portainer (`9000`) lors des premiers lancements locaux. Résolu avec succès en modifiant le mappage de port externe vers le port `9001` dans le fichier `docker-compose.yml`.
 *   **Pistes d'amélioration :** Implémenter un build Multi-stage dans le Dockerfile pour réduire l'empreinte de stockage de l'image de production et mettre en place un Reverse Proxy Nginx pour chiffrer les flux web en HTTPS.
+
+## Documentation supplémentaire
+
+Vous trouverez dans le fichier DockerGLPI.pdf des informations supplémentaires sur de déploiement.
